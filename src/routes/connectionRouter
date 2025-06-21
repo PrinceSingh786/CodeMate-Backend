@@ -1,0 +1,115 @@
+const connectionSchema = require("../models/Connection");
+const express = require("express");
+const User = require("../models/user");
+const { auth } = require("../Middlewares/auth");
+const connectionrouter = express.Router();
+
+connectionrouter.post(
+  "/sendconnectionrequest/:toUserId/:status",
+  auth,
+  async (req, res) => {
+    console.log("sendconnectionrequest");
+    try {
+      const fromUserId = req.user._id;
+      const toUserId = req.params.toUserId;
+      const status = req.params.status;
+      const allowedstatus = ["ignored", "interested"];
+
+      // if (
+      //   fromUserId.toString() === toUserId.toString() ||
+      //   fromUserId === toUserId
+      // ) {
+      //   console.log("You cannot send a connection request to yourself");
+      //   return res
+      //     .status(400)
+      //     .send("You cannot send a connection request to yourself");
+      // }
+
+      if (!allowedstatus.includes(status)) {
+        return res
+          .status(400)
+          .send("Invalid status. Allowed statuses are: ignored, interested");
+      }
+
+      const touser = await User.findById(toUserId);
+      if (!touser) {
+        return res.status(404).send("User not found!!!!!");
+      }
+
+      // Check if a connection request already exists
+      const existingRequest = await connectionSchema.findOne({
+        fromUserId,
+        toUserId,
+      });
+      if (existingRequest) {
+        return res.status(400).send("Connection request already exists");
+      }
+      const isMatched = await connectionSchema.findOne({
+        fromUserId: toUserId,
+        toUserId: fromUserId,
+      });
+
+      if (isMatched) {
+        return res
+          .status(400)
+          .send(
+            "Also request from the other user and he is " + isMatched.status
+          );
+      }
+
+      const connectionRequest = new connectionSchema({
+        fromUserId,
+        toUserId,
+        status,
+      });
+      const data = await connectionRequest.save();
+      res.json({
+        message: "Connection request sent successfully",
+        data,
+      });
+    } catch (error) {
+      res.status(400).send("ERROR: " + error.message);
+    }
+  }
+);
+
+// accept or reject a connection request
+connectionrouter.post(
+  "/acceptconnectionrequest/:status/:requestId",
+  auth,
+  async (req, res) => {
+    console.log("acceptconnectionrequest Initialized");
+    try {
+      const loggedInUser = req.user;
+      const { status, requestId } = req.params;
+      const allowedstatus = ["accepted", "rejected"];
+      if (!allowedstatus.includes(status)) {
+        return res
+          .status(400)
+          .send("Invalid status. Allowed statuses are: accepted, rejected");
+      }
+      const connectionRequest = await connectionSchema.findOne({
+        fromUserId: requestId,
+        toUserId: loggedInUser._id,
+        status: "interested",
+      });
+      console.log(requestId + " and ");
+      console.log("connectionRequest", connectionRequest);
+      if (!connectionRequest) {
+        return res
+          .status(404)
+          .send("Connection request not found or already processed");
+      }
+      connectionRequest.status = status;
+      const updatedRequest = await connectionRequest.save();
+      res.json({
+        message: `Connection request ${status} successfully`,
+        data: updatedRequest,
+      });
+    } catch (error) {
+      res.status(400).send("ERROR: " + error.message);
+    }
+  }
+);
+
+module.exports = connectionrouter;
