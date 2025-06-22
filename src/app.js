@@ -9,7 +9,7 @@ const connectDB = require("./config/database");
 
 app.use(
   cors({
-    origin: "https://code-mate-backend.vercel.app", // Replace with your frontend URL
+    origin: "https://code-mate-backend.vercel.app/", // Replace with your frontend URL
     credentials: true, // Allow cookies to be sent with requests
   })
 );
