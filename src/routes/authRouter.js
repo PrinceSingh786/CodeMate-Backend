@@ -18,11 +18,11 @@ authrouter.post("/signup", async (req, res) => {
     await userdata.save();
     const token = await userdata.getJWT();
     res.cookie("token", token, {
-httpOnly: true,      // Prevents JS access to the cookie
-secure: true,        // Ensures cookie is sent only over HTTPS (required for Vercel)
-sameSite: "none",    // Allows cross-site cookie (required for frontend/backend on different domains)
-expires: new Date(Date.now() + 12 * 60 * 100000), // Your expiry logic
-});
+      httpOnly: true, // Prevents JS access to the cookie
+      secure: true, // Ensures cookie is sent only over HTTPS (required for Vercel)
+      sameSite: "none", // Allows cross-site cookie (required for frontend/backend on different domains)
+      expires: new Date(Date.now() + 12 * 60 * 100000), // Your expiry logic
+    });
     res.send("User data saved successfully");
   } catch (err) {
     res.status(400).send("Error saving user data" + err);
@@ -42,11 +42,11 @@ authrouter.post("/login", async (req, res) => {
     } else {
       const token = await user.getJWT();
       res.cookie("token", token, {
-  httpOnly: true,      // Prevents JS access to the cookie
-  secure: true,        // Ensures cookie is sent only over HTTPS (required for Vercel)
-  sameSite: "none",    // Allows cross-site cookie (required for frontend/backend on different domains)
-  expires: new Date(Date.now() + 12 * 60 * 1000000000), // Your expiry logic
-});
+        httpOnly: true, // Prevents JS access to the cookie
+        secure: true, // Ensures cookie is sent only over HTTPS (required for Vercel)
+        sameSite: "none", // Allows cross-site cookie (required for frontend/backend on different domains)
+        expires: new Date(Date.now() + 12 * 60 * 1000000000), // Your expiry logic
+      });
       res.json({
         message: "Login successful",
         user: {
@@ -66,15 +66,15 @@ authrouter.post("/login", async (req, res) => {
 authrouter.post("/logout", auth, async (req, res) => {
   try {
     const token = req.cookies.token;
-    if(!token){
+    if (!token) {
       throw new Error("No token found");
     }
-res.cookie("token", token, {
-  httpOnly: true,      // Prevents JS access to the cookie
-  secure: true,        // Ensures cookie is sent only over HTTPS (required for Vercel)
-  sameSite: "none",    // Allows cross-site cookie (required for frontend/backend on different domains)
-  expires: new Date(Date.now() ), // Your expiry logic
-});
+    res.cookie("token", token, {
+      httpOnly: true, // Prevents JS access to the cookie
+      secure: true, // Ensures cookie is sent only over HTTPS (required for Vercel)
+      sameSite: "none", // Allows cross-site cookie (required for frontend/backend on different domains)
+      expires: new Date(Date.now()), // Your expiry logic
+    });
     res.send("Logout successful");
   } catch (err) {
     res.status(400).send("Error logging out: " + err.message);
