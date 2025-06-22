@@ -8,23 +8,32 @@ const authrouter = express.Router();
 authrouter.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
   const hashpassword = await bcrypt.hash(password, 10);
-  const userdata = new User({
+  const user= new User({
     ...req.body,
     password: hashpassword,
   });
   console.log("Hashed password:", hashpassword);
   try {
     validateSignupData(req);
-    await userdata.save();
-    const token = await userdata.getJWT();
+    await user.save();
+    const token = await user.getJWT();
     res.cookie("token", token, {
       httpOnly: true, // Prevents JS access to the cookie
       secure: true, // Ensures cookie is sent only over HTTPS (required for Vercel)
       sameSite: "none", // Allows cross-site cookie (required for frontend/backend on different domains)
       expires: new Date(Date.now() + 12 * 60 * 100000), // Your expiry logic
     });
-    res.send("User data saved successfully");
-  } catch (err) {
+      res.json({
+        message: "Login successful",
+        user: {
+          name: user.name,
+          age: user.age,
+          gender: user.gender,
+          photo: user.photo,
+          bio: user.bio,
+        },
+      });
+      } catch (err) {
     res.status(400).send("Error saving user data" + err);
   }
 });
